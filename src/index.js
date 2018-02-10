@@ -33,10 +33,6 @@ app.use(morgan(':method :url :content :status :res[content-length] - :response-t
 app.use(bodyParser.json())
 app.use(express.static('build'))
 
-app.get('/', (req, res) => {
-    res.send('<h1>Hello World!</h1>')
-})
-
 app.get('/info', (req, res) => {
     res.send('puhelinluettelossa on '+persons.length+' henkilön tiedot<br /><br />'+Date())
 })
