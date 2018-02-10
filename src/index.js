@@ -29,9 +29,10 @@ const morgan = require('morgan')
 
 morgan.token('content', function (req, res) { return JSON.stringify(req.body) })
 
+app.use(express.static('build'))
 app.use(morgan(':method :url :content :status :res[content-length] - :response-time ms'))
 app.use(bodyParser.json())
-app.use(express.static('build'))
+
 
 app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>')
