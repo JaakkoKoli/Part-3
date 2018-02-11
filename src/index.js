@@ -25,7 +25,7 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
-
+const Person = require('./models/person')
 
 morgan.token('content', function (req, res) { return JSON.stringify(req.body) })
 
@@ -39,11 +39,15 @@ app.get('/', (req, res) => {
 })
 
 app.get('/info', (req, res) => {
-    res.send('puhelinluettelossa on '+persons.length+' henkilön tiedot<br /><br />'+Date())
+    Person.find({}).then(res => {
+      res.send('puhelinluettelossa on '+res.length+' henkilön tiedot<br /><br />'+Date())
+    })
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(res => {
+      res.json(res)
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
@@ -59,7 +63,8 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
-    persons = persons.filter(note => note.id !== id)
+    
+    Person.delete(id)
   
     response.status(204).end()
 })
@@ -87,15 +92,17 @@ const generateId = () => {
         return response.status(400).json({error: 'number must be unique'})
     }
 
-    const person = {
+    const person = new Person({
       name: body.name,
       number: body.number,
       id: generateId()
-    }
+    })
   
-    persons = persons.concat(person)
-  
-    response.json(person)
+    person.save().then(res => {
+      response.json(person)
+    }).catch(e => {
+      console.log(e)
+    })
 })
 
 const PORT = process.env.PORT || 3001
