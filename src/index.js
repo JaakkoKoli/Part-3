@@ -104,7 +104,7 @@ app.post('/api/persons', (request, response) => {
     })
 
     person.save().then(res => {
-      response.json(person)
+      response.json(Person.format(person))
     }).catch(e => {
       console.log(e)
     })
