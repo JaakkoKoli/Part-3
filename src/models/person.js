@@ -1,15 +1,12 @@
 const mongoose = require('mongoose')
 
-const url = 'mongodb://admin:admin@ds229418.mlab.com:29418/part3'
+const url = process.env.MONGODB_URI
 
 mongoose.connect(url)
 
-const Person = mongoose.model('Person',personSchema) 
-
 const personSchema = new mongoose.Schema({
   name: String,
-  number: String,
-  id: Number
+  number: String
 })
 
 personSchema.statics.format = (person) => {
@@ -20,4 +17,6 @@ personSchema.statics.format = (person) => {
     return formattedPerson
 }
 
-export default Person
+const Person = mongoose.model('Person', personSchema)
+
+module.exports = Person

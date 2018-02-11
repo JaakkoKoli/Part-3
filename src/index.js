@@ -39,43 +39,53 @@ app.get('/', (req, res) => {
 })
 
 app.get('/info', (req, res) => {
-    Person.find({}).then(res => {
-      res.send('puhelinluettelossa on '+res.length+' henkilön tiedot<br /><br />'+Date())
+    Person.find({}).then(r => {
+      res.send('puhelinluettelossa on '+r.length+' henkilön tiedot<br /><br />'+Date())
     })
 })
 
 app.get('/api/persons', (req, res) => {
-    Person.find({}).then(res => {
-      res.json(res)
+    Person.find({}).then(r => {
+      persons = r.map(Person.format)
+      persons.forEach(p => console.log(p))
+      res.json(persons)
+    }).catch(error => {
+      console.log(error)
     })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(p => p.id === id)
-  
-    if (person) {
-      response.json(person)
-    } else {
-      response.status(404).end()
-    }
+    const id = request.params.id
+    
+    Person.findById(id).then(r => {
+      person = Person.format(r)
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    }).catch(error => {
+      console.log(error)
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
+    const id = request.params.id
     
-    Person.delete(id)
-  
-    response.status(204).end()
+    Person.findByIdAndRemove(id).then(a => {
+      response.status(204).end()
+    }).catch(error => {
+      console.log(error)
+    })
 })
 
 const generateId = () => {
     return Math.round(Math.random()*1000000)
 }
   
-  app.post('/api/persons', (request, response) => {
-    const body = request.body
-  
+app.post('/api/persons', (request, response) => {
+  const body = request.body
+  Person.find({name: body.name}).then(persons => {
     if (body.name === undefined) {
       return response.status(400).json({error: 'name missing'})
     }
@@ -84,25 +94,29 @@ const generateId = () => {
         return response.status(400).json({error: 'number missing'})
     }
 
-    if (persons.find(n=>n.name===body.name)) {
+    if (persons.length>0) {
         return response.status(400).json({error: 'name must be unique'})
-    }
-
-    if (persons.find(n=>n.number===body.number)) {
-        return response.status(400).json({error: 'number must be unique'})
     }
 
     const person = new Person({
       name: body.name,
-      number: body.number,
-      id: generateId()
+      number: body.number
     })
-  
+
     person.save().then(res => {
       response.json(person)
     }).catch(e => {
       console.log(e)
     })
+  })
+})
+
+app.put('/api/persons/:id', (request, response) => {
+  const id = request.params.id
+  const body = request.body
+  Person.findByIdAndUpdate({ _id: id }, { $set: { number: body.number }}).then(r => response.json(r)).catch(e => {
+    console.log(e)
+  })
 })
 
 const PORT = process.env.PORT || 3001
